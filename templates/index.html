@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Analysis with FFT, DFT, and STFT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Signal Analysis (FFT, DFT, STFT)</h1>
+        <form id="uploadForm">
+            <div>
+                <label for="method">Select Analysis Method:</label>
+                <select id="method" name="method">
+                    <option value="fft">FFT</option>
+                    <option value="dft">DFT</option>
+                    <option value="stft">STFT</option>
+                </select>
+            </div>
+            <div>
+                <label for="samplingRate">Sampling Rate (Hz):</label>
+                <input type="number" id="samplingRate" name="sampling_rate" value="1000">
+            </div>
+            <div>
+                <label for="signalInput">Enter Signal Data (comma separated):</label>
+                <textarea id="signalInput" name="signal" rows="5" cols="50"></textarea>
+            </div>
+            <button type="submit">Analyze</button>
+        </form>
+
+        <div id="result" class="result">
+            <h2>Analysis Result</h2>
+            <p id="dominantFrequency"></p>
+            <img id="sineWaveImage" src="" alt="Sine Wave Plot">
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Collect form data
+            const method = document.getElementById('method').value;
+            const samplingRate = parseInt(document.getElementById('samplingRate').value);
+            const signal = document.getElementById('signalInput').value.split(',').map(Number);
+
+            const requestData = {
+                method: method,
+                sampling_rate: samplingRate,
+                signal: signal
+            };
+
+            fetch('/process_signal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    document.getElementById('dominantFrequency').innerText = `Dominant Frequency: ${data.dominant_frequency.toFixed(2)} Hz`;
+                    document.getElementById('sineWaveImage').src = data.sine_wave_image;
+                }
+            })
+            .catch(error => {
+                alert('Error processing the signal: ' + error);
+            });
+        });
+    </script>
+</body>
+</html>
